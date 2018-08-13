@@ -16,6 +16,7 @@ let g:test#default_runners = {
   \ 'Rust':       ['CargoTest'],
   \ 'Clojure':    ['FireplaceTest'],
   \ 'CSharp':     ['Xunit', 'DotnetTest'],
+  \ 'FSharp':     ['DotnetTest'],
   \ 'Shell':      ['Bats'],
   \ 'Swift':      ['SwiftPM'],
   \ 'VimL':       ['Themis', 'VSpec', 'Vader'],
