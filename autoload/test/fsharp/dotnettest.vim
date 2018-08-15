@@ -1,6 +1,4 @@
-let s:slash = (has('win32') || has('win64')) && fnamemodify(&shell, ':t') ==? 'cmd.exe' ? '\' : '/'
-
-let g:test#fsharp#patterns = {
+let g:test#fsharp#dotnettest#patterns = {
   \ 'test':      ['\v^\s*let ``(\w+)``'],
   \ 'namespace': ['\v^\s*module (\w+)', '\v^\s*namespace ((\w|\.)+)'],
 \}
@@ -19,30 +17,10 @@ function! test#fsharp#dotnettest#test_file(file) abort
   endif
 endfunction
 
-function! test#fsharp#dotnettest#get_project_path(file) abort
-  let l:filepath = fnamemodify(a:file, ':p:h')
-  let l:project_files = s:get_project_files(l:filepath)
-  let l:search_for_fsproj = 1
-
-  while len(l:project_files) == 0 && l:search_for_fsproj
-    let l:filepath_parts = split(l:filepath, s:slash)
-    let l:search_for_fsproj = len(l:filepath_parts) > 1
-    " only want the forward slash at the root dir for non-windows machines
-    let l:filepath = substitute(s:slash, '\', '', '').join(l:filepath_parts[0:-2], s:slash)
-    let l:project_files = s:get_project_files(l:filepath)
-  endwhile
-
-  if len(l:project_files) == 0
-    throw 'Unable to find .fsproj file, a .fsproj file is required to make use of the `dotnet test` command.'
-  endif
-
-  return l:project_files[0]
-endfunction
-
 function! test#fsharp#dotnettest#build_position(type, position) abort
   let file = a:position['file']
   let filename = fnamemodify(file, ':t:r')
-  let project_path = test#fsharp#dotnettest#get_project_path(file)
+  let project_path = test#fsharp#get_project_path(file)
 
   if a:type ==# 'nearest'
     let name = s:nearest_test(a:position)
@@ -68,10 +46,7 @@ function! test#fsharp#dotnettest#executable() abort
 endfunction
 
 function! s:nearest_test(position) abort
-  let name = test#base#nearest_test(a:position, g:test#fsharp#patterns)
+  let name = test#base#nearest_test(a:position, g:test#fsharp#dotnettest#patterns)
   return join(name['namespace'] + name['test'], '.')
 endfunction
 
-function! s:get_project_files(filepath) abort
-  return split(glob(a:filepath . s:slash . '*.fsproj'), '\n')
-endfunction
