@@ -1,13 +1,13 @@
 source spec/support/helpers.vim
 
 function! s:remove_path(cmd)
-  return substitute(a:cmd, '\/.*\/spec\/fixtures\/dotnet-xunit\/', '', '')
+  return substitute(a:cmd, '\/.*\/spec\/fixtures\/dotnet_csharp_xunit\/', '', '')
 endfunction
 
 describe "xUnit"
 
   before
-    cd spec/fixtures/dotnet-xunit
+    cd spec/fixtures/dotnet_csharp_xunit
   end
 
   after

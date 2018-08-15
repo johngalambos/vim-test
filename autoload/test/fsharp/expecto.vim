@@ -1,6 +1,6 @@
 let g:test#fsharp#expecto#patterns = {
-  \ 'test':      ['\v^\s*test case ``(\w+)``'],
-  \ 'namespace': ['\v^\s*module (\w+)', '\v^\s*namespace ((\w|\.)+)'],
+  \ 'test':      ['\v^\s*%(test|testCase)\s"((\w|\s)+)"'],
+  \ 'namespace': ['\v^\s*testList\s"((\w|\s)+)"']
 \}
 
 if !exists('g:test#fsharp#expecto#file_pattern')
@@ -29,12 +29,12 @@ function! test#fsharp#expecto#build_position(type, position) abort
   if a:type ==# 'nearest'
     let name = s:nearest_test(a:position)
     if !empty(name)
-      return ['--project', project_path, '--filter', 'FullyQualifiedName\~' . name]
+      return ['--run', '"'.name.'"']
     else
-      return ['--project', project_path, '--filter', 'FullyQualifiedName\~' . filename]
+      return ['--project', project_path, '--run', 'FullyQualifiedName\~' . filename]
     endif
   elseif a:type ==# 'file'
-    return ['--project', project_path,  '--filter', 'FullyQualifiedName\~' . filename]
+    return ['--project', project_path,  '--run', 'FullyQualifiedName\~' . filename]
   else
     return ['--project', project_path]
   endif
@@ -51,11 +51,11 @@ endfunction
 
 function! s:nearest_test(position) abort
   let name = test#base#nearest_test(a:position, g:test#fsharp#expecto#patterns)
-  return join(name['namespace'] + name['test'], '.')
+  return join(name['namespace'] + name['test'], '/')
 endfunction
 
 function! s:is_using_expecto(file) abort
-  let l:project_path = test#csharp#get_project_path(a:file)
+  let l:project_path = test#fsharp#get_project_path(a:file)
   return filereadable(l:project_path) 
       \ && match(
           \ readfile(l:project_path), 

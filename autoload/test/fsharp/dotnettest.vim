@@ -13,7 +13,7 @@ function! test#fsharp#dotnettest#test_file(file) abort
     if exists('g:test#fsharp#runner')
       return g:test#fsharp#runner ==# 'dotnettest'
     endif
-    return 1
+    return 0
   endif
 endfunction
 
