@@ -4,7 +4,6 @@ let g:test#fsharp#expecto#patterns = {
 \}
 
 if !exists('g:test#fsharp#expecto#file_pattern')
-  echomsg('testing the pattern for fsharp')
   let g:test#fsharp#expecto#file_pattern = '\v\.fs$'
 endif
 
@@ -17,7 +16,7 @@ function! test#fsharp#expecto#test_file(file) abort
           \ && (search('open Expecto', 'n') > 0)
           \ && (search('[<Tests>]', 'n') > 0)
     endif
-    return 1
+    return 0
   endif
 endfunction
 

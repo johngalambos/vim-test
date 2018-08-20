@@ -1,10 +1,9 @@
 let g:test#fsharp#dotnettest#patterns = {
-  \ 'test':      ['\v^\s*let ``(\w+)``'],
-  \ 'namespace': ['\v^\s*module (\w+)', '\v^\s*namespace ((\w|\.)+)'],
+  \ 'test':      ['\v^\s*let\s%(`)+((\w|\s)+)%(`)+'],
+  \ 'namespace': ['\v^\s*module ((\w|\.)+)']
 \}
 
 if !exists('g:test#fsharp#dotnettest#file_pattern')
-  echomsg('testing the pattern for fsharp')
   let g:test#fsharp#dotnettest#file_pattern = '\v\.fs$'
 endif
 
@@ -12,6 +11,9 @@ function! test#fsharp#dotnettest#test_file(file) abort
   if fnamemodify(a:file, ':t') =~# g:test#fsharp#dotnettest#file_pattern
     if exists('g:test#fsharp#runner')
       return g:test#fsharp#runner ==# 'dotnettest'
+    else
+      return s:is_using_xunit(a:file)
+          \ && (search('open Xunit', 'n') > 0)
     endif
     return 0
   endif
@@ -25,7 +27,7 @@ function! test#fsharp#dotnettest#build_position(type, position) abort
   if a:type ==# 'nearest'
     let name = s:nearest_test(a:position)
     if !empty(name)
-      return [project_path, '--filter', 'FullyQualifiedName\~' . name]
+      return [project_path, '--filter', '"FullyQualifiedName=' . name . '"']
     else
       return [project_path, '--filter', 'FullyQualifiedName\~' . filename]
     endif
@@ -46,7 +48,14 @@ function! test#fsharp#dotnettest#executable() abort
 endfunction
 
 function! s:nearest_test(position) abort
-  let name = test#base#nearest_test(a:position, g:test#fsharp#dotnettest#patterns)
+  let name = test#fsharp#nearest_test(a:position, g:test#fsharp#dotnettest#patterns)
   return join(name['namespace'] + name['test'], '.')
 endfunction
 
+function! s:is_using_xunit(file) abort
+  let l:project_path = test#fsharp#get_project_path(a:file)
+  return filereadable(l:project_path) 
+      \ && match(
+          \ readfile(l:project_path), 
+          \ 'PackageReference.*xunit')
+endfunction

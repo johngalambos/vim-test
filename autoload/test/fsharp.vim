@@ -23,3 +23,33 @@ endfunction
 function! s:get_project_files(filepath) abort
   return split(glob(a:filepath . s:slash . '*.fsproj'), '\n')
 endfunction
+
+" This is copy of test#base#nearest test with the exception that we allow
+" modules and namespaces to occur at the same indent level as the tests
+" themselves
+function! test#fsharp#nearest_test(position, patterns) abort
+  let test        = []
+  let namespace   = []
+  let last_indent = -1
+
+  for line in reverse(getbufline(a:position['file'], 1, a:position['line']))
+    let test_match      = s:find_match(line, a:patterns['test'])
+    let namespace_match = s:find_match(line, a:patterns['namespace'])
+
+    let indent = len(matchstr(line, '^\s*'))
+    if !empty(test_match) && last_indent == -1
+      call add(test, filter(test_match[1:], '!empty(v:val)')[0])
+      let last_indent = indent
+    elseif !empty(namespace_match) && (indent <= last_indent || last_indent == -1)
+      call add(namespace, filter(namespace_match[1:], '!empty(v:val)')[0])
+      let last_indent = indent
+    endif
+  endfor
+
+  return {'test': test, 'namespace': reverse(namespace)}
+endfunction
+
+function! s:find_match(line, patterns) abort
+  let matches = map(copy(a:patterns), 'matchlist(a:line, v:val)')
+  return get(filter(matches, '!empty(v:val)'), 0, [])
+endfunction
